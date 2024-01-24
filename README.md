@@ -1,8 +1,10 @@
 # hitthesilk-pilot
-This project trains and evaluates ML models at their ability to land the plane in the _Hit the Silk!_ board game.
+:grey_exclamation: This project uses [Multi-layer Perceptron Classifiers](https://scikit-learn.org/stable/modules/generated/sklearn.neural_network.MLPClassifier.html) to learn how to land the plane in the [_Hit the Silk!_](https://escapeplanboardgames.com/hit-the-silk/) board game. 
+
+The objective is to evaluate how powerful the "Pilot License" item is, by comparing the probability of successfully landing the plane with and without the item.
 
 # Background
-Hit the Silk! ([publisher's link](https://escapeplanboardgames.com/hit-the-silk/)) is a semi-cooperative game in which player's find themselves in a heist-gone-wrong scenario in which everything was going to plan until the pilot seized a gun from the lockbox, opened the emergency door and fired three rounds into the engine before bailing with his parachute and a spare.
+_Hit the Silk!_ [[link](https://escapeplanboardgames.com/hit-the-silk/)] is a semi-cooperative game in which player's find themselves in a heist-gone-wrong scenario in which everything was going to plan until the pilot seized a gun from the lockbox, opened the emergency door and fired three rounds into the engine before bailing with his parachute and a spare.
 
 The team's objective is to collectively secure a target sum of cash. Individually, the goal is to stay alive by securing a parachute and jumping before the plane crashes.
 
