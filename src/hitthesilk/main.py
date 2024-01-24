@@ -38,7 +38,7 @@ def clean_dataframe(df):
     df = df.astype(int)
     return df
 
-def land_the_plane(pilot_license=False, clf=None):
+def land_the_plane(pilot_licence=False, clf=None):
     """!
     """
 
@@ -67,17 +67,17 @@ def land_the_plane(pilot_license=False, clf=None):
         base_options = ["GLIDE", "DIVE"]
         base_action = "NOTHING"
 
-        if pilot_license:
+        if pilot_licence:
             pilot_options = ["+X", "-X", "+Y", "-Y", "NOTHING"]
         else:
             pilot_options = ["NOTHING"]
 
         # If either roll forces an action, then the base options
         # is Nothing, you don't have a choice, your action is forced.
-        # BUT, if you have a pilots license, you can still choose a pilot
+        # BUT, if you have a pilot licence, you can still choose a pilot
         # action.
         if roll_1 in [5,6] or roll_2 in [5,6]:
-            if pilot_license:
+            if pilot_licence:
                 if clf != None:
                     test_df = pd.DataFrame(columns=columns)
                     for base_option in ["NOTHING"]:
@@ -300,7 +300,7 @@ def land_the_plane(pilot_license=False, clf=None):
         x_land = current_coords[0]
         roll_final = randint(1,6)
         if (roll_final == 1) or (roll_final == 5):
-            if pilot_license:
+            if pilot_licence:
                 res = "WIN"
             else:
                 if x_land < 11:
@@ -308,7 +308,7 @@ def land_the_plane(pilot_license=False, clf=None):
                 else:
                     res = "LOSS"
         elif roll_final == 2:
-            if pilot_license and x_land < 11:
+            if pilot_licence and x_land < 11:
                 res = "WIN"
             else:
                 if x_land < 10:
@@ -316,7 +316,7 @@ def land_the_plane(pilot_license=False, clf=None):
                 else:
                     res = "LOSS"
         elif roll_final == 3:
-            if pilot_license and x_land < 10:
+            if pilot_licence and x_land < 10:
                 res = "WIN"
             else:
                 if x_land < 9:
@@ -324,7 +324,7 @@ def land_the_plane(pilot_license=False, clf=None):
                 else:
                     res = "LOSS"
         elif roll_final == 4:
-            if pilot_license and x_land < 9:
+            if pilot_licence and x_land < 9:
                 res = "WIN"
             else:
                 if x_land < 8:
@@ -332,7 +332,7 @@ def land_the_plane(pilot_license=False, clf=None):
                 else:
                     res = "LOSS"
         elif roll_final == 6:
-            if pilot_license:
+            if pilot_licence:
                 res = "WIN"
             else:
                 res = "LOSS"
@@ -366,7 +366,7 @@ def generate_dataset(landing_attempts=1000, clf_str=None):
         clf = None
 
     for i in range(1000):
-        _, df = land_the_plane(pilot_license=True, clf=clf)
+        _, df = land_the_plane(pilot_licence=True, clf=clf)
         df_master = pd.concat([df_master,df], axis=0)
     
     df_master = df_master.reset_index(drop=True)
@@ -402,27 +402,27 @@ if __name__ == "__main__":
     # number_of_models_to_make = 10
     # for iter in range(number_of_models_to_make):
     #     # df = generate_dataset(landing_attempts=1000, clf_str=None)
-    #     df = generate_dataset(landing_attempts=10000, clf_str="mlp_with_license.pickle")
+    #     df = generate_dataset(landing_attempts=10000, clf_str="mlp_with_licence.pickle")
     #     ml_stuff(df, iter)
 
     wins = 0
     losses = 0
-    clf = pickle.load(open("mlp_no_license.pickle", 'rb'))
+    clf = pickle.load(open("mlp_no_licence.pickle", 'rb'))
     for i in range(5000):
         res, df = land_the_plane(False, clf)
         if res == "WIN":
             wins += 1
         else:
             losses += 1
-    print("NO LICENSE... Wins: {}, Losses: {}. Win Ratio: {}".format(wins, losses, wins/losses))
+    print("NO LICENCE... Wins: {}, Losses: {}. Win Ratio: {}".format(wins, losses, wins/losses))
 
     wins = 0
     losses = 0
-    clf = pickle.load(open("mlp_with_license.pickle", 'rb'))
+    clf = pickle.load(open("mlp_with_licence.pickle", 'rb'))
     for i in range(5000):
         res, df = land_the_plane(True, clf)
         if res == "WIN":
             wins += 1
         else:
             losses += 1
-    print("WITH LICENSE... Wins: {}, Losses: {}. Win Ratio: {}".format(wins, losses, wins/losses))
+    print("WITH LICENCE... Wins: {}, Losses: {}. Win Ratio: {}".format(wins, losses, wins/losses))

@@ -1,7 +1,7 @@
 # hitthesilk-pilot
-:grey_exclamation: This project uses [Multi-layer Perceptron Classifiers](https://scikit-learn.org/stable/modules/generated/sklearn.neural_network.MLPClassifier.html) to learn how to land the plane in the [_Hit the Silk!_](https://escapeplanboardgames.com/hit-the-silk/) board game. 
+:grey_exclamation: This project uses machine learning [Multi-layer Perceptron Classifiers](https://scikit-learn.org/stable/modules/generated/sklearn.neural_network.MLPClassifier.html) models to learn how to land the plane in the [_Hit the Silk!_](https://escapeplanboardgames.com/hit-the-silk/) board game. 
 
-The objective is to evaluate how powerful the "Pilot License" item is, by comparing the probability of successfully landing the plane with and without the item.
+The objective is to evaluate how powerful the in-game "Pilot Licence" item is by comparing the probability of successfully landing the plane with and without it.
 
 # Background
 _Hit the Silk!_ [[link](https://escapeplanboardgames.com/hit-the-silk/)] is a semi-cooperative game in which player's find themselves in a heist-gone-wrong scenario in which everything was going to plan until the pilot seized a gun from the lockbox, opened the emergency door and fired three rounds into the engine before bailing with his parachute and a spare.
@@ -33,30 +33,28 @@ The player must, when possible, try to make the best decision on how to apply ea
 Once on the landing strip, the player must hit the brakes and come to a stop.
 > "Roll one dice to determine the final move across the landing strip. If you roll a down indicator, you lose. If you pass beyond the final space into the mountain, you crash and lose. If you come to a standstill on the landing strip, you have survived."
 
-
-
-## The Twist -- Pilot License
-There is an item in the game called the Pilot License that players can use during their dice rolls to land the plane. Its ability reads:
+## The Twist -- Pilot Licence
+There is an item in the game called the Pilot Licence that players can use during their dice rolls to land the plane. Its ability reads:
 
 > the pilot licence allows you to deduct a value of 1 from one of the dice, on each turn.
 
-This gives players a bit more ajency over their fate, allowing them to have a small modification on the randomness of their dice rolls. But how powerful is this item...?
+This gives players a bit more agency over their fate, allowing them to have a small modification on the randomness of their dice rolls. But how powerful is this item...?
 
 # Inspiration
-When I played this game with friends, I found (albeit in the limited number of games we played) that we were quite consistently able to land the plane with the Pilot License.
+When I played this game with friends, I found (albeit in the limited number of games we played) that we were quite consistently able to land the plane with the Pilot Licence.
 
-This got me thinking, **just how easy is it to land the plane**, with and without the Pilot License? Is the Pilot License an un-balanced item?
+This got me thinking, **just how easy is it to land the plane**, with and without the Pilot Licence? Is the Pilot Licence an un-balanced item?
 
 
 # Analysis
-Landing the plane is not all up to fate. Though a player's success relies heavily on the randomness of the dice rolls aligning with their desired values at different stages during the landing, the player still, sometimes, has some amount of control over how to move their token and secure the landing. The Pilot License adds an extra bit of flavour to the game by giving the player an extra bit of control during the landing process.
+Landing the plane is not all up to fate. Though a player's success relies heavily on the randomness of the dice rolls aligning with their desired values at different stages during the landing, the player still, sometimes, has some amount of control over how to move their token and secure the landing. The Pilot Licence adds an extra bit of flavour to the game by giving the player an extra bit of control during the landing process.
 
 ## The Environment
 The landing environment (grid) was replicated in code to allow for running thousands of simulated landings.
 
 To play in this environment, I created 2 seperate MLPClassifiers as our test dummies.
 
-The "regular" model does not have a Pilot License, the "pilot" model does.
+The "regular" model does not have a Pilot Licence, the "pilot" model does.
 
 The regular model's action space is very limited. Depending on what it rolls, it really only has 3 options.
 1. Nothing! This happens when dice rolls are identical, or when both die force a particular direction, etc.
@@ -91,5 +89,5 @@ The results are as follows:
 | Regular | 22.7% |
 | Pilot | 59.9% |
 
-The Pilot License, when given to an MLP model, **nearly triples** the chance to successfully land the plane!
+The Pilot Licence, when given to an MLP model, **nearly triples** the chance to successfully land the plane!
 
