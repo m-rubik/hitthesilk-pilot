@@ -3,6 +3,7 @@
 
 
 from random import randint, choice
+from statistics import mean
 import pandas as pd
 import pickle
 import numpy as np
@@ -399,13 +400,10 @@ def analyse_model(pilot_licence=False, clf=None):
     columns = ['x_coord', 'y_coord', 'roll_1', 'roll_2', 'base_action', 'pilot_action']
     df = pd.DataFrame(columns=columns)
 
-
     total_counter = 0
     total_y_counter = 0
     total_x_counter = 0
     total_nothing_counter = 0
-
-    # ALL_LEGAL_COORDS = [[7,1], [8,1], [9,1], [10,1], [11,1]]
 
     for coords_this_iter in ALL_LEGAL_COORDS_EXCEPT_LANDING:
 
@@ -486,9 +484,7 @@ def analyse_model(pilot_licence=False, clf=None):
         y_prob = (y_counter / (y_counter+x_counter+nothing_counter)) * 100
         x_prob = (x_counter / (y_counter+x_counter+nothing_counter)) * 100
         nothing_prob = (nothing_counter / (y_counter+x_counter+nothing_counter)) * 100
-        # print(coords_this_iter, y_prob, x_prob, nothing_prob)
-
-        from statistics import mean
+        print(coords_this_iter, y_prob, x_prob, nothing_prob)
         print(coords_this_iter, mean(chance_of_successes)*100)
 
 
@@ -497,57 +493,57 @@ def analyse_model(pilot_licence=False, clf=None):
 
 if __name__ == "__main__":
 
-    # # Step 1: Randomized Training
-    # # - Start by having both models take completely randomized choices in their landings
-    # # - Train each model on these randomized choices
-    # df = generate_dataset(landing_attempts=1000000, pilot_licence=False, clf_str=None)
-    # ml_stuff(df, "no_licence_partial_trained")
-    # print("Initial (randomized) training on model without licence complete.")
-    # df = generate_dataset(landing_attempts=1000000, pilot_licence=True, clf_str=None)
-    # ml_stuff(df, "with_licence_partial_trained")
-    # print("Initial (randomized) training on model with licence complete.")
+    # Step 1: Randomized Training
+    # - Start by having both models take completely randomized choices in their landings
+    # - Train each model on these randomized choices
+    df = generate_dataset(landing_attempts=1000000, pilot_licence=False, clf_str=None)
+    ml_stuff(df, "no_licence_partial_trained")
+    print("Initial (randomized) training on model without licence complete.")
+    df = generate_dataset(landing_attempts=1000000, pilot_licence=True, clf_str=None)
+    ml_stuff(df, "with_licence_partial_trained")
+    print("Initial (randomized) training on model with licence complete.")
 
-    # # Step 2: Iterative Training
-    # # - Make both partially trained models attempt more landings, train on the results
-    # # - Repeat this process
-    # # - After the final training cycle, save the final form of each model
-    # training_cycles = 10
-    # for iter in range(training_cycles-1):
-    #     print("Starting training cycle {}...".format(iter))
-    #     df = generate_dataset(landing_attempts=100000, pilot_licence=False, clf_str="mlp_no_licence_partial_trained.pickle")
-    #     ml_stuff(df, "no_licence_partial_trained")
-    #     df = generate_dataset(landing_attempts=100000, pilot_licence=True, clf_str="mlp_with_licence_partial_trained.pickle")
-    #     ml_stuff(df, "with_licence_partial_trained")
-    # print("Starting final training cycle...")
-    # df = generate_dataset(landing_attempts=100000, pilot_licence=False, clf_str="mlp_no_licence_partial_trained.pickle")
-    # ml_stuff(df, "no_licence")
-    # df = generate_dataset(landing_attempts=100000, pilot_licence=True, clf_str="mlp_with_licence_partial_trained.pickle")
-    # ml_stuff(df, "with_licence")
+    # Step 2: Iterative Training
+    # - Make both partially trained models attempt more landings, train on the results
+    # - Repeat this process
+    # - After the final training cycle, save the final form of each model
+    training_cycles = 10
+    for iter in range(training_cycles-1):
+        print("Starting training cycle {}...".format(iter))
+        df = generate_dataset(landing_attempts=100000, pilot_licence=False, clf_str="mlp_no_licence_partial_trained.pickle")
+        ml_stuff(df, "no_licence_partial_trained")
+        df = generate_dataset(landing_attempts=100000, pilot_licence=True, clf_str="mlp_with_licence_partial_trained.pickle")
+        ml_stuff(df, "with_licence_partial_trained")
+    print("Starting final training cycle...")
+    df = generate_dataset(landing_attempts=100000, pilot_licence=False, clf_str="mlp_no_licence_partial_trained.pickle")
+    ml_stuff(df, "no_licence")
+    df = generate_dataset(landing_attempts=100000, pilot_licence=True, clf_str="mlp_with_licence_partial_trained.pickle")
+    ml_stuff(df, "with_licence")
 
-    # # Step 3: Performance Evaluation
-    # # 
-    # print("Starting performance evaluation...")
-    # wins = 0
-    # losses = 0
-    # clf = pickle.load(open("mlp_no_licence.pickle", 'rb'))
-    # for i in range(10000):
-    #     res, df = land_the_plane(False, clf)
-    #     if res == "WIN":
-    #         wins += 1
-    #     else:
-    #         losses += 1
-    # print("NO LICENCE... Wins: {}, Losses: {}. Win Ratio: {}".format(wins, losses, wins/losses))
+    # Step 3: Performance Evaluation
+    # 
+    print("Starting performance evaluation...")
+    wins = 0
+    losses = 0
+    clf = pickle.load(open("mlp_no_licence.pickle", 'rb'))
+    for i in range(10000):
+        res, df = land_the_plane(False, clf)
+        if res == "WIN":
+            wins += 1
+        else:
+            losses += 1
+    print("NO LICENCE... Wins: {}, Losses: {}. Win Ratio: {}".format(wins, losses, wins/losses))
 
-    # wins = 0
-    # losses = 0
-    # clf = pickle.load(open("mlp_with_licence.pickle", 'rb'))
-    # for i in range(10000):
-    #     res, df = land_the_plane(True, clf)
-    #     if res == "WIN":
-    #         wins += 1
-    #     else:
-    #         losses += 1
-    # print("WITH LICENCE... Wins: {}, Losses: {}. Win Ratio: {}".format(wins, losses, wins/losses))
+    wins = 0
+    losses = 0
+    clf = pickle.load(open("mlp_with_licence.pickle", 'rb'))
+    for i in range(10000):
+        res, df = land_the_plane(True, clf)
+        if res == "WIN":
+            wins += 1
+        else:
+            losses += 1
+    print("WITH LICENCE... Wins: {}, Losses: {}. Win Ratio: {}".format(wins, losses, wins/losses))
 
     # Step 4: Analyse the models
     clf = pickle.load(open("mlp_with_licence.pickle", 'rb'))
