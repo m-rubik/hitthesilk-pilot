@@ -21,17 +21,15 @@ BASE_ACTION_INVERSE_MAPPING = {
 
 PILOT_ACTION_INVERSE_MAPPING = {
     0: "NOTHING",
-    1: "+X",
-    2: "-X",
-    3: "+Y",
-    4: "-Y"
+    1: "-X",
+    2: "+Y",
 }
 
 
 def clean_dataframe(df):
     transform_dict = {
         'base_action': {"NOTHING": 0, "GLIDE": 1, "DIVE": 2},
-        'pilot_action': {"NOTHING": 0, "+X": 1, "-X": 2, "+Y": 3, "-Y": 4}
+        'pilot_action': {"NOTHING": 0, "-X": 1, "+Y": 2}
     }
 
     df = df.replace(transform_dict)
@@ -68,7 +66,7 @@ def land_the_plane(pilot_licence=False, clf=None):
         base_action = "NOTHING"
 
         if pilot_licence:
-            pilot_options = ["+X", "-X", "+Y", "-Y", "NOTHING"]
+            pilot_options = ["NOTHING", "-X", "+Y"]
         else:
             pilot_options = ["NOTHING"]
 
@@ -80,9 +78,8 @@ def land_the_plane(pilot_licence=False, clf=None):
             if pilot_licence:
                 if clf != None:
                     test_df = pd.DataFrame(columns=columns)
-                    for base_option in ["NOTHING"]:
-                        for pilot_option in pilot_options:
-                            test_df.loc[len(test_df)] = [coords_this_iter[0],coords_this_iter[1],roll_1,roll_2,base_option,pilot_option]
+                    for pilot_option in pilot_options:
+                        test_df.loc[len(test_df)] = [coords_this_iter[0],coords_this_iter[1],roll_1,roll_2,"NOTHING",pilot_option]
                     test_df = clean_dataframe(test_df)
                     chance_of_success = clf.predict_proba(test_df)
                     # print(chance_of_success)
@@ -105,103 +102,89 @@ def land_the_plane(pilot_licence=False, clf=None):
                 pilot_action = "NOTHING"
 
         if roll_1 == 5:
-            if pilot_action == "+X":
-                current_coords[0] += 2
-            elif pilot_action == "-X":
-                # +1-1 = 0. Do nothing
+            # Resolve die 1
+            if pilot_action == "-X":
+                # +1-1 = 0. Do nothing.
                 pass
             else:
                 current_coords[0] += 1
-            
+
+            # If the other die also forces the same action,
+            # we cannot also apply the pilot action, so treat it normally.
             if roll_2 == 5:
                 current_coords[0] += 1
+
+            # If the other die forces movement in the other direction,
+            # check if rhe chosen pilot action applies.
             elif roll_2 == 6:
                 if pilot_action == "+Y":
+                    # -1+1 = 0. Do nothing.
                     pass
-                elif pilot_action == "-Y":
-                    current_coords[1] -= 2
                 else:
                     current_coords[1] -= 1
+            
+            # The other die does not force an action, treat it normally.
             else:
                 if pilot_action == "+Y":
                     current_coords[1] -= (roll_2-1)
-                elif pilot_action == "-Y":
-                    current_coords[1] -= (roll_2+1)
                 else:
                     current_coords[1] -= roll_2
+        
         elif roll_1 == 6:
             if pilot_action == "+Y":
                 pass
-            elif pilot_action == "-Y":
-                current_coords[1] -= 2
             else:
                 current_coords[1] -= 1
-            
             if roll_2 == 6:
                 current_coords[1] -= 1
             elif roll_2 == 5:
-                if pilot_action == "+X":
-                    current_coords[0] += 2
-                elif pilot_action == "-X":
+                if pilot_action == "-X":
                     pass
                 else:
                     current_coords[0] += 1
             else:
-                if pilot_action == "+X":
-                    current_coords[0] += (roll_2+1)
-                elif pilot_action == "-X":
+                if pilot_action == "-X":
                     current_coords[0] += (roll_2-1)
                 else:
                     current_coords[0] += roll_2
+        
         elif roll_2 == 5:
-            if pilot_action == "+X":
-                current_coords[0] += 2
-            elif pilot_action == "-X":
-                # +1-1 = 0. Do nothing
+            if pilot_action == "-X":
                 pass
             else:
                 current_coords[0] += 1
-            
             if roll_1 == 5:
                 current_coords[0] += 1
             elif roll_1 == 6:
                 if pilot_action == "+Y":
+                    # -1+1 = 0. Do nothing.
                     pass
-                elif pilot_action == "-Y":
-                    current_coords[1] -= 2
                 else:
                     current_coords[1] -= 1
             else:
                 if pilot_action == "+Y":
                     current_coords[1] -= (roll_1-1)
-                elif pilot_action == "-Y":
-                    current_coords[1] -= (roll_1+1)
                 else:
                     current_coords[1] -= roll_1
+        
         elif roll_2 == 6:
             if pilot_action == "+Y":
                 pass
-            elif pilot_action == "-Y":
-                current_coords[1] -= 2
             else:
                 current_coords[1] -= 1
-            
             if roll_1 == 6:
                 current_coords[1] -= 1
             elif roll_1 == 5:
-                if pilot_action == "+X":
-                    current_coords[0] += 2
-                elif pilot_action == "-X":
+                if pilot_action == "-X":
                     pass
                 else:
                     current_coords[0] += 1
             else:
-                if pilot_action == "+X":
-                    current_coords[0] += (roll_1+1)
-                elif pilot_action == "-X":
+                if pilot_action == "-X":
                     current_coords[0] += (roll_1-1)
                 else:
                     current_coords[0] += roll_1
+    
         else:
             if clf != None:
                 test_df = pd.DataFrame(columns=columns)
@@ -236,32 +219,22 @@ def land_the_plane(pilot_licence=False, clf=None):
             min_roll = min(rolls)
 
             if base_action == "GLIDE":
-                if pilot_action == "+X":
-                    current_coords[0] += (max_roll+1)
-                    current_coords[1] -= min_roll
-                elif pilot_action == "-X":
+                if pilot_action == "-X":
                     current_coords[0] += (max_roll-1)
                     current_coords[1] -= min_roll
                 else:
                     current_coords[0] += max_roll
                     if pilot_action == "+Y":
                         current_coords[1] -= (min_roll-1)
-                    elif pilot_action == "-Y":
-                        current_coords[1] -= (min_roll+1)
                     else:
                         current_coords[1] -= min_roll
             elif base_action == "DIVE":
                 if pilot_action == "+Y":
                     current_coords[1] -= (max_roll-1)
                     current_coords[0] += min_roll
-                elif pilot_action == "-Y":
-                    current_coords[1] -= (max_roll+1)
-                    current_coords[0] += min_roll
                 else:
                     current_coords[1] -= max_roll
-                    if pilot_action == "+X":
-                        current_coords[0] += (min_roll+1)
-                    elif pilot_action == "-X":
+                    if pilot_action == "-X":
                         current_coords[0] += (min_roll-1)
                     else:
                         current_coords[0] += min_roll
@@ -349,15 +322,18 @@ def land_the_plane(pilot_licence=False, clf=None):
     return res, df
 
 
-def generate_dataset(landing_attempts=1000, clf_str=None):
+def generate_dataset(landing_attempts=1000, pilot_licence=False, clf_str=None):
     columns = ['x_coord', 'y_coord', 'roll_1', 'roll_2', 'base_action', 'pilot_action', 'outcome']
     
     try:
-        df_master = pd.read_csv('master.csv')
-        # print(df_master)
-        print(df_master['outcome'].value_counts())
+        if pilot_licence:
+            df_master = pd.read_csv('with_licence.csv')
+            # print(df_master['outcome'].value_counts())
+        else:
+            df_master = pd.read_csv('no_licence.csv')
+            # print(df_master['outcome'].value_counts())
     except:
-        print("file doesn't exist")
+        print("data file doesn't already exist")
         df_master = pd.DataFrame(columns=columns)
 
     if clf_str != None:
@@ -366,12 +342,15 @@ def generate_dataset(landing_attempts=1000, clf_str=None):
         clf = None
 
     for i in range(1000):
-        _, df = land_the_plane(pilot_licence=True, clf=clf)
+        _, df = land_the_plane(pilot_licence=pilot_licence, clf=clf)
         df_master = pd.concat([df_master,df], axis=0)
     
     df_master = df_master.reset_index(drop=True)
 
-    df_master.to_csv("master.csv", index=False)
+    if pilot_licence:
+        df_master.to_csv("with_licence.csv", index=False)
+    else:
+        df_master.to_csv("no_licence.csv", index=False)
 
     return df_master
 
@@ -385,30 +364,55 @@ def ml_stuff(df, iter):
 
     X = df[['x_coord', 'y_coord', 'roll_1', 'roll_2', 'base_action', 'pilot_action']]
     y = df[['outcome']]
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3)
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.1)
 
     under_sampler = RandomUnderSampler(random_state=42)
     X_res, y_res = under_sampler.fit_resample(X_train, y_train)
 
-    clf = MLPClassifier(random_state=1, max_iter=1000).fit(X_res, y_res)
+    clf = MLPClassifier(random_state=1, max_iter=50000).fit(X_res, y_res)
 
     model_score = clf.score(X_test, y_test)
     print(model_score)
     
-    pickle.dump(clf, open('mlp_{}_{}.pickle'.format(round(model_score*100), iter), 'wb'))
+    # pickle.dump(clf, open('mlp_{}_{}.pickle'.format(round(model_score*100), iter), 'wb'))
+    pickle.dump(clf, open('mlp_{}.pickle'.format(iter), 'wb'))
     
 if __name__ == "__main__":
 
-    # number_of_models_to_make = 10
-    # for iter in range(number_of_models_to_make):
-    #     # df = generate_dataset(landing_attempts=1000, clf_str=None)
-    #     df = generate_dataset(landing_attempts=10000, clf_str="mlp_with_licence.pickle")
-    #     ml_stuff(df, iter)
+    # Step 1: Randomized Training
+    # - Start by having both models take completely randomized choices in their landings
+    # - Train each model on these randomized choices
+    df = generate_dataset(landing_attempts=1000000, pilot_licence=False, clf_str=None)
+    ml_stuff(df, "no_licence_partial_trained")
+    print("Initial (randomized) training on model without licence complete.")
+    df = generate_dataset(landing_attempts=1000000, pilot_licence=True, clf_str=None)
+    ml_stuff(df, "with_licence_partial_trained")
+    print("Initial (randomized) training on model with licence complete.")
 
+    # Step 2: Iterative Training
+    # - Make both partially trained models attempt more landings, train on the results
+    # - Repeat this process
+    # - After the final training cycle, save the final form of each model
+    training_cycles = 10
+    for iter in range(training_cycles-1):
+        print("Starting training cycle {}...".format(iter))
+        df = generate_dataset(landing_attempts=100000, pilot_licence=False, clf_str="mlp_no_licence_partial_trained.pickle")
+        ml_stuff(df, "no_licence_partial_trained")
+        df = generate_dataset(landing_attempts=100000, pilot_licence=True, clf_str="mlp_with_licence_partial_trained.pickle")
+        ml_stuff(df, "with_licence_partial_trained")
+    print("Starting final training cycle...")
+    df = generate_dataset(landing_attempts=100000, pilot_licence=False, clf_str="mlp_no_licence_partial_trained.pickle")
+    ml_stuff(df, "no_licence")
+    df = generate_dataset(landing_attempts=100000, pilot_licence=True, clf_str="mlp_with_licence_partial_trained.pickle")
+    ml_stuff(df, "with_licence")
+
+    # Step 3: Performance Evaluation
+    # 
+    print("Starting performance evaluation...")
     wins = 0
     losses = 0
     clf = pickle.load(open("mlp_no_licence.pickle", 'rb'))
-    for i in range(5000):
+    for i in range(10000):
         res, df = land_the_plane(False, clf)
         if res == "WIN":
             wins += 1
@@ -419,7 +423,7 @@ if __name__ == "__main__":
     wins = 0
     losses = 0
     clf = pickle.load(open("mlp_with_licence.pickle", 'rb'))
-    for i in range(5000):
+    for i in range(10000):
         res, df = land_the_plane(True, clf)
         if res == "WIN":
             wins += 1
