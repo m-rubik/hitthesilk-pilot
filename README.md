@@ -1,14 +1,10 @@
 # hitthesilk-pilot
-:grey_exclamation: This project uses machine learning [Multi-layer Perceptron Classifiers](https://scikit-learn.org/stable/modules/generated/sklearn.neural_network.MLPClassifier.html) models to learn how to land the plane in the [_Hit the Silk!_](https://escapeplanboardgames.com/hit-the-silk/) board game. 
+This project is a fan-made adaptation of a portion of the [_Hit the Silk!_](https://boardgamegeek.com/boardgame/331685/hit-the-silk) published by *Escape Plan Board Games*, with the aim to use machine learning [Multi-layer Perceptron Classifier](https://scikit-learn.org/stable/modules/generated/sklearn.neural_network.MLPClassifier.html) models to discover strategy on landing the plane. 
 
-The objective is to evaluate how powerful the in-game "Pilot Licence" item is by comparing the probability of successfully landing the plane with and without it.
+As part of this, a core objective of this project is to evaluate how powerful the in-game "Pilot Licence" item is by comparing the probability of successfully landing the plane with and without it.
 
-TL;DR (*spoiler*) -- The Pilot Licence quadruples the chance to successfully land the plane. The strength of the item is mostly in its ability to reduce the falling speed of the plane.
-
-# Background
-_Hit the Silk!_ [[link](https://escapeplanboardgames.com/hit-the-silk/)] is a semi-cooperative game in which player's find themselves in a heist-gone-wrong scenario in which everything was going to plan until the pilot seized a gun from the lockbox, opened the emergency door and fired three rounds into the engine before bailing with his parachute and a spare.
-
-The team's objective is to collectively secure a target sum of cash. Individually, the goal is to stay alive by securing a parachute and jumping before the plane crashes.
+## About the game, and landing the plane
+> [_Hit the Silk!_](https://boardgamegeek.com/boardgame/331685/hit-the-silk) is a semi-cooperative game in which player's find themselves in a heist-gone-wrong scenario in which everything was going to plan until the pilot seized a gun from the lockbox, opened the emergency door and fired three rounds into the engine before bailing with his parachute and a spare. The team's objective is to collectively secure a target sum of cash. Individually, the goal is to stay alive by securing a parachute and jumping before the plane crashes.
 
 As a last resort, players who did not jump from the plane (i.e, those that did not _Hit the Silk!_) may attempt to land the plane.
 
@@ -49,37 +45,44 @@ This got me thinking, **just how easy is it to land the plane**, with and withou
 
 
 # Analysis
-Landing the plane is not all up to fate. Though a player's success relies heavily on the randomness of the dice rolls aligning with their desired values at different stages during the landing, the player still, sometimes, has some amount of control over how to move their token and secure the landing. The Pilot Licence adds an extra bit of flavour to the game by giving the player an extra bit of control during the landing process.
+Landing the plane is not *entirely* up to the fate of the dice. Though a player's success relies heavily on the randomness of the dice rolls aligning with their desired values at different stages during the landing, the player still, sometimes, has some amount of control over how to move their token and secure the landing. The Pilot Licence adds an extra bit of flavour to the game by giving the player an extra bit of control during the landing process.
 
 ## The Environment
-The landing environment (grid) was replicated in code to allow for running thousands of simulated landings.
+The landing environment (grid) was replicated in simulation to allow for running thousands of landing attempts to be computed.
 
-To play in this environment, I created 2 seperate MLPClassifiers as our test dummies.
+To play in this environment, I created 2 seperate [MLPClassifiers](https://scikit-learn.org/stable/modules/generated/sklearn.neural_network.MLPClassifier.html) as our test dummies.
 
 The "regular" model does not have a Pilot Licence, the "pilot" model does.
 
 The regular model's action space is very limited. Depending on what it rolls, it really only has 3 options.
-1. Nothing! This happens when dice rolls are identical, or when both die force a particular direction, etc.
+1. Nothing! This happens when dice rolls are identical, or when both dice force a particular direction, etc.
 2. Dive! This means to use the bigger number of the two rolls to move down (vertical dive).
 3. Glide! This means to use the bigger number of the two rolls to move across (horizontal glide).
 
-The pilot model gets the base action space, but it also gets the choice of an *additional*, special, Pilot action which can be:
-1. Nothing!
-2. Glide more (+1 horizontal)
-3. Glide less (-1 horizontal)
-4. Dive more (+1 vertical drop)
-5. Dive less (-1 vertical drop)
+The pilot model gets the base action space, but it also gets the choice of *additional*, special, Pilot actions which can be:
+1. Glide less (-1 horizontal)
+2. Dive less (-1 vertical drop)
 
 Using the grid coordinate system, I add in the barriers that cause crashing, and I add a special section for handling the final braking sequence.
 
 ## Learning to land a plane
-The models start by taking actions at random. They continue doing so until they either crash or land. If they crash, for each action they took at each coordinate along the way, they mark the overall outcome of that run as either "crashed" or "landed". This continues for hundreds of thousands of iterations to build up a training dataset, on which they train, and learn how each action they took at each coordinate, given the choice they had with the dice roll (again, fate still has a big say here) affected the end result. Now that they have been trained on what they've previously done, they will go through the landing sequence again, but this time at each phases during the dice rolling, they will consider
-1. What coordinate am I currently at?
-2. What dice rolls do I have to work with this round?
-3. What actions are available to me?
-4. (Pilot only) what pilot action is available to me?
+The models start by taking actions at random. They continue doing so until they either crash or land. 
 
-They will use _predict_proba_ to attempt to predict which action (and pilot action, if available) results in the highest chance of a successful landing, then take that action. This process repeats itself in "training cycles", each cycle consisting of 100,000 landing attempts.
+If they crash, for each action they took at each coordinate along the way, they mark the overall outcome of that run as either "crashed". 
+
+The same logic applies for a successful landing, where the course is marked as "landed".
+
+This continues for hundreds of thousands of iterations to build up a training dataset. Training on this data they begin to learn how each action they took at each coordinate, given the choice they had with the dice roll (again, fate still has a big say here) affected the end result (crash/land).
+
+Now that they have been trained on what they've previously done, they will go through the landing sequence again, but this time instead of taking random actions they will consider:
+1. What coordinate am I currently at?
+2. What dice rolls do I have to work with this turn?
+3. What actions are available to me?
+4. (Pilot only) what pilot actions are available to me?
+
+They will use ```predict_proba``` to attempt to predict which action (and pilot action, if available) results in the highest probability of a successful landing, then take that action. 
+
+This process repeats itself in "training cycles", each cycle consisting of 100,000 landing attempts.
 
 ## Results
 After training each model on **2 million landing attempts**, each model was evaluated by having it attempt to use its knowledge to land the plane **10,000 times**.
@@ -91,25 +94,44 @@ The results are as follows:
 | Regular | 22.4% |
 | Pilot | **89.7%** |
 
-The Pilot Licence, when given to an MLP model, **quadruples** the chance to successfully land the plane! The chance of landing goes from "infrequently" to "almost always".
+:star: The Pilot Licence, when given to an MLP model, **quadruples** the chance to successfully land the plane! The chance of landing goes from "infrequently" to "almost always".
 
-Given these results, it seems that the Pilot Licence, if you know what to do with it, is incredibly powerful. 
+Given these results, it seems that the Pilot Licence, if you know what to do with it, is **incredibly powerful**. 
 
-So the question is, what exactly is this model doing with the Pilot Licence that is drastically improving its success rates? We can answer this question by iterating through every possible position (coordinate pair) that the plane could be in its descent, as well as every possible dice result that could be rolled. We call each one of these combinations a "state" that the player may find themselves in. Going through every model state, we get responses from the model to build up an overall decision matrix that answers: "At coordinate (x,y) with dice roll (i,j), which Pilot Licence action should I take?". These answers allow us to see the percentage probability (%) of the model taking any given Pilot Licence action (or none) for any given state. The results are as follows:
+So the next logical question is, what exactly is the model doing with the Pilot Licence to drastically improve its success rates? 
+
+We can answer this question by iterating through every possible position (coordinate pair) that the plane could be in its descent, as well as every possible dice result that could be rolled. We call each one of these combinations a "state" that the player may find themselves in. Going through every model state, we get responses from the model to build up an overall decision matrix that answers: 
+
+"At coordinate (x,y) with dice roll (i,j), which Pilot Licence action should I take?". 
+
+These answers allow us to see the percentage probability (%) of the model taking any given Pilot Licence action (or none) for any given state. The results are as follows:
 
 ![base](/media/2.svg)
 
-Note that there are 1470 different possible states, since we exclude the special braking roll when on the ground.
+*Note that there are 1470 different possible states, since we exclude the special braking roll when on the ground.*
 
-| Pilot Licence Action | Chance to Take Action|
+| Pilot Licence Action | Average Chance to Take Action|
 | ----- | -------------- |
 | ↑ (+Y) | 58% |
 | ← (-X) | 15% |
 | None | 27% |
 
-The results indicate that overall the Pilot Licence action to reduce vertical fall (+Y) is used far more frequently. In fact, it is almost twice as likely to take no Pilot Licence action at all (27%) than it is to take the action to reduce horizontal travel (-X at 15%), wheras the action to reduce vertical fall (+Y) is used more often than not (58%).
+The results indicate that, overall, the Pilot Licence action to reduce vertical fall (+Y) is used far more frequently. In fact, it is almost twice as likely to take no Pilot Licence action at all (27%) than it is to take the action to reduce horizontal travel (-X at 15%), wheras the action to reduce vertical fall (+Y) is used more often than not (58%).
 
-So really, the strength of the Pilot Licence lies mostly in its ability to reduce vertical fall. The reason that is the case is rather simple. On average, over millions of dice rolls, the plane would, without any other external forces, tend to travel down and to the right at an equal rate, i.e, for every space it falls, it would travel 1 space to the right. Again, this is a trend, on average. However, this path doesn't actually get us on to the landing strip! The ideal path would be to land on the very left-most tip of the landing strip to maximise our braking chance. So, what we need to improve the path trend is to push it slightly more to the right. The Pilot Licence cannot directly achieve that, since it does not have a "glide more" (+X) action allowed, but it can get close to this by doing the opposite, reducing the vertical fall. This action shifts our path trend closer to the ideal path.
+> The strength of the Pilot Licence lies mostly in its ability to reduce vertical fall.
+
+ The reason that is the case is rather simple. On average, over millions of dice rolls, the plane would, without any other external forces, tend to travel down and to the right at an equal rate, i.e, for every space it falls, it would travel 1 space to the right. Again, this is an averaged trend. However, this path doesn't actually get us on to the landing strip! The ideal path would be to land on the very left-most tip of the landing strip to maximise our braking chance. So, what we need to improve the path trend is to push it slightly more to the right. The Pilot Licence cannot directly achieve that, since it does not have a "glide more" (+X) action allowed, but it can get close to this by doing the opposite, reducing the vertical fall. This action shifts our path trend closer to the ideal path.
 
 ![base](/media/3.svg)
 
+# Summary
+
+This project was succesful in implementing and training an MLP model to learn to land the plane in _Hit the Silk!_. Furthermore, it provided strong evidence to suggest that the Pilot license is an incredible strong item, that turns what would be a gamble into almost a guaranteed success.
+
+## Legal Notice
+
+This project is not an official adaptation, is non-commercial, and is intended purely for educational and research purposes. Certain game mechanics and elements may have been modified or omitted in this version of the game.
+
+All intellectual property rights related to *Hit The Silk!* are the property of the publisher, *Escape Plan Board Games*. This project does not claim ownership of any of the original game content and is in no way affiliated with or endorsed by *Escape Plan Board Games*.
+
+If you would like to support the official *Hit The Silk!* game, please visit the publisher.
